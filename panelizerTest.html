@@ -1,0 +1,302 @@
+<html><head>
+<style type="text/css">body,td,div,span,p{font-family:arial,sans-serif;}a {color:#0000cc;}a:visited {color:#551a8b;}a:active {color:#ff0000;}body{margin: 0px;padding: 0px;background-color:white;}</style>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
+
+<style type="text/css">
+body{
+	margin:100px 0 0 100px;
+	width:33%;
+	border: solid 10px black;
+}
+
+.clickable {
+  cursor: pointer;
+  color: blue;
+}
+.panel_table_div {
+  width: 100%;
+  height: 85%;
+  overflow: hidden;
+}
+
+#selection_list{
+	font-size: 70%;
+	text-align:center;
+  overflow: hidden;
+}
+
+.panel_table_id{
+	
+}
+.panel_table_val{
+	
+}
+
+#panel_tab_left{
+	font-weight: bold;	
+	color: black;
+	float: left;
+	padding-left:20px;
+}
+#panel_tab_right{
+	font-weight: bold;	
+	color: black;
+	float: right;
+	padding-right:20px;
+}
+
+.tabEntry{
+	padding-left: 5px;
+	padding-right: 5px;	
+}
+
+.selectedTab{
+	font-size: 150%;
+	font-weight: bold;	
+}	
+
+
+TABLE.panel_table {
+  font-family: arial;
+  background-color: #3F669F;
+  border-style: solid;
+  border-color: white;
+  border-width: 5px;
+  width:100%;
+  text-align:center;
+}
+TH.panel_table {
+  color: white;
+  padding-bottom: 10px;
+  font-size: 150%;
+}
+TR.panel_table {
+	
+}
+TD.panel_table {
+  background-color: #A5A7A7;
+  color: black;
+  border-width: 1px;
+  text-align: center;
+}
+.clickToEditControls {
+  position: relative;
+}
+.gadgets-gadget-user-prefs-dialog {
+  background: #cacaca;
+}
+
+
+#blurLayer{
+	opacity: .3;
+	background: grey;	
+}
+</style>
+
+
+
+
+</head>
+
+<body dir="ltr">
+
+<script type="text/javascript">
+	var testData = [{"@uri":"http://int-howl-ws1.ais.anoneng.com:8080/shepherd-websvc/host/10.43.0.2","address":"10.43.0.2","description":"host1 description","driverAddress":"10.43.0.2","driverPort":"1234","driverPort2":"1234","driverPort3":"1234","driverPort4":"1234","driverPort5":"1234","driverPort6":"1234","driverPort7":"1234","driverPort8":"1234","driverPort9":"1234","driverPort11":"1234","driverPort12":"1234","driverPort13":"1234","driverPort14":"1234","driverPort15":"1234","driverPort16":"1234","driverPort17":"1234","driverPort18":"1234","hostStatus":{"name":"active"},"hostgroup":{"@uri":"http://int-howl-ws1.ais.anoneng.com:8080/shepherd-websvc/hostgroup/hostgroup1","name":"hostgroup1"},"name":"host1","os":{"name":"linux"}},{"@uri":"http://int-howl-ws1.ais.anoneng.com:8080/shepherd-websvc/host/10.43.0.7","address":"10.43.0.7","description":"host2 description","driverAddress":"10.43.0.7","driverPort":"1234","hostStatus":{"name":"active"},"hostgroup":{"@uri":"http://int-howl-ws1.ais.anoneng.com:8080/shepherd-websvc/hostgroup/hostgroup2","name":"hostgroup2"},"name":"host2","os":{"name":"linux"}}];
+
+	function encodeValue(val) {
+	    var encodedVal;
+	
+		if (!encodeURIComponent){
+		   encodedVal = escape(val);
+		   encodedVal = encodedVal.replace(/@/g, '%40');
+		   encodedVal = encodedVal.replace(/\//g, '%2F');
+		   encodedVal = encodedVal.replace(/\+/g, '%2B');
+	    }else{
+	       encodedVal = encodeURIComponent(val);
+		   encodedVal = encodedVal.replace(/~/g, '%7E');
+		   encodedVal = encodedVal.replace(/!/g, '%21');
+		   encodedVal = encodedVal.replace(/\(/g, '%28');
+		   encodedVal = encodedVal.replace(/\)/g, '%29');
+		   encodedVal = encodedVal.replace(/'/g, '%27');
+	    }
+	
+	    return encodedVal.replace(/\%20/g,'+'); 
+	}
+
+
+	var _panel = false;
+		
+	function panelizeFromTable( el ){
+	
+	}
+	
+	// obj should be an array of data to view
+	function panelizeFromObject( obj ){
+		obj = testData;
+		delete _panel;
+		_panel = {
+			raw : obj,
+			tabs : [],
+			items : [],
+			selectedTab : "",
+			selectedTabEl : false
+		};
+		
+		var order = [];
+		var sub_objects = {};
+		
+		
+		// This is to show the header line
+		var firstEl = true;
+		for(var key in obj[0]){
+			// Skip the name, this is an ID
+			if(key == "name") continue;
+			
+			// Skip the URI, that is this items location
+			if(key == "@uri") continue;
+			
+			_panel.tabs.push(key);
+			
+			var appendEl = $("<span class='tabEntry clickable'>"+key+"</span>");
+			
+			if(firstEl){
+				firstEl = false;
+				appendEl.addClass("selectedTab");
+				_panel.selectedTab = key;
+				//_panel.selectedTabEl = appendEl;
+				$("#current_selection").html(key);
+			}
+			
+			appendEl.bind("click", {}, tabSelected);
+			
+			$("#selection_list").append( appendEl );
+		}
+		
+		tabSelected(false, _panel.selectedTab);
+	}
+	
+	function getTabEl(selectedTab){
+		var elList = $("#selection_list > span");
+		
+		for(var i=0; i<elList.length; i++){
+				if(elList[i].innerHTML === selectedTab)
+					return $(elList[i]);
+		}
+		
+		console.log("getTabEl selectedTab not found");
+		return $();
+	}
+	
+	function tabSelected(evt, selectedTab){		
+		if(!selectedTab) selectedTab = $(this).html();
+		
+		getTabEl( _panel.selectedTab ).removeClass("selectedTab");
+		
+		var selEl = getTabEl( selectedTab );
+		selEl.addClass("selectedTab");
+		
+		// adjust the scroll left
+		$("#selection_list").scrollLeft( 0 );
+		// keep the items centered
+		var offsetLeft = (selEl.offset()['left'] - $("#selection_list").offset()['left']) + selEl.width()/2 - $("#selection_list").width() / 2;
+		// keep the left most elements where they are
+		if(offsetLeft<0) offsetLeft = 0;
+		// create an upper limit to use for the last few
+		var max = $("#selection_list")[0].scrollWidth - ($("#selection_list").width() / 2);
+		var setTo = (offsetLeft < max)? offsetLeft : max;
+		$("#selection_list").scrollLeft( setTo );
+		
+		_panel.selectedTab = selectedTab;
+		//_panel.selectedTabEl = appendEl;
+		$("#current_selection").html(selectedTab);
+		$("#panel_table_body").html("");
+		
+		for(var i in _panel.raw){
+			var data = _panel.raw[i];
+			var rowEl = $("<tr class='panel_table'></tr>");
+			rowEl.append("<td class='panel_table_id'>"+data.name+"</td>");
+			
+			var tmpVal = data[ _panel.selectedTab ];
+			if(typeof tmpVal == "string"){
+				rowEl.append("<td class='panel_table_val'>"+tmpVal+"</td>");
+			}
+			
+			else if(typeof tmpVal == "object"){
+				if(!tmpVal['name']){
+					console.log("Unknown object: ", tmpVal);
+				}else{
+					var subEl1 = $("<td class='panel_table_val'></td>");
+					var subEl2 = $("<span>"+tmpVal['name']+"</span>");
+					
+					if(tmpVal['@uri']){
+						subEl2.addClass("clickable");
+						subEl2.bind("click", {uri:tmpVal['@uri']}, panelFetchURI);
+					}
+					
+					rowEl.append( subEl1.append( subEl2 ) );
+				}
+			}
+			else{
+				console.log("Unhandled type: ", typeof tmpVal, tmpVal);	
+			}
+			
+			
+			$("#panel_table_body").append(rowEl);
+		}
+	}
+	
+	function panel_tab_left(){
+			var el = $("#selection_list > .selectedTab");
+			var nextEl = (el.prev().length)? el.prev().html() : $("#selection_list > span").last().html();
+			tabSelected(false, nextEl);		
+	}
+	
+	function panel_tab_right(){
+			var el = $("#selection_list > .selectedTab");
+			var nextEl = (el.next().length)? el.next().html() : $("#selection_list > span").first().html();
+			tabSelected(false, nextEl);
+	}
+	
+	function panelFetchURI(event){
+		console.log(event.data.uri);	
+	}
+	
+	function panelFlip(){
+		
+	}
+	
+	function editPanel(){
+			
+	}
+	
+	$().ready(panelizeFromObject);
+</script>
+
+
+<div class="panel_table_div">
+	<div id="">Hosts</div>
+	<div id="selection_list" style=""></div>
+	<table class="panel_table">
+		<thead>
+			<tr class="panel_table">
+				<th class="panel_table" style="width:30%">Name</th>
+				<th class="panel_table" style="width:70%">
+					<span id="panel_tab_left" onclick="panel_tab_left();" class="clickable"><</span>
+					<span id="current_selection" class="panel_table"></span>
+					<span id="panel_tab_right" onclick="panel_tab_right();" class="clickable">></span>
+				</th>
+			</tr>
+		</thead>
+		<tbody id="panel_table_body">
+		</tbody>
+	</table>
+</div>
+
+<div class="edit_overlay">
+
+</div>
+
+<div id="blurLayer"></div>
+
+</body></html>

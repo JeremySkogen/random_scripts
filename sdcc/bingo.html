@@ -1,0 +1,256 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<title>SDCC Bingo 2012</title>
+
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script type="text/javascript" src="bingo.js"></script>
+
+<script type="text/javascript">
+
+function setCookie(value) {
+	var exp = new Date();	    //set new date object	
+	exp.setTime(exp.getTime() + (1000 * 60 * 60 * 24 * 120));
+	document.cookie = "ccb=" + value + "; path=/; expires=" + exp.toGMTString(); 
+}
+
+function newBoard(){
+	document.cookie = "ccb=;  path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+	window.location.href = window.location.href;
+}
+
+Array.prototype.removeByIndex = function(index) {
+	this.splice(index, 1);
+}
+
+var cookie_text = document.cookie.split("=")[1];
+var random_tiles = {};
+var tile_height;
+
+
+function randomize_tiles(){
+	cookie_text = ""
+	
+	var num_tiles = tiles.length-2;
+	
+	for(var i=0; i<25; i++){
+		var row = ["A", "B", "C", "D", "E"][Math.floor(i/5)];
+		var col = i%5 + 1;
+		var rc_key = row+col;
+		
+		var tmp_tile;
+		
+		if(i==12) {
+			tmp_tile = tiles[0];
+		}
+		
+		else{
+			var tile_num = Math.floor(Math.random()*(tiles.length)) + 1;
+			tmp_tile = tiles[tile_num];
+		}
+		
+		cookie_text += tmp_tile.id +"o" + (i==24? "" : ",");
+		random_tiles[rc_key] = tmp_tile;
+		
+		$("#"+rc_key).html("<img src='"+tmp_tile.img_src+"' alt='"+tmp_tile.name+"' width='"+tile_height+"' height='"+tile_height+"'>");
+		$("#"+rc_key).click(function(a,b){			
+			var rc_key = a.currentTarget.id;
+						
+			console.log(a.currentTarget.id);
+			var check = confirm("You saw "+random_tiles[rc_key].name+"?");
+			if(check){
+				$(a.currentTarget).css("opacity", ".2");
+				$(a.currentTarget).css("background-color", "red");
+				
+				cookie_text = cookie_text.replace(random_tiles[rc_key].id+"o", random_tiles[rc_key].id+"x")
+				setCookie(cookie_text);
+			}
+		});
+		
+		tiles.removeByIndex(tile_num);
+	}
+	
+	setCookie(cookie_text);
+}
+
+function findTileWithId(id){
+	for(var i=0; i<tiles.length; i++){
+		if(tiles[i].id == id){
+			return tiles[i];	
+		}
+	}
+	return false;
+}
+
+function restore_tiles(){
+	var num_tiles = tiles.length - 1;
+	var id_list = cookie_text.split(",");
+	
+	for(var i=0; i<25; i++){
+		var row = ["A", "B", "C", "D", "E"][Math.floor(i/5)];
+		var col = i%5 + 1;
+		var rc_key = row+col;
+		
+		var tmp_id = id_list[i].substring(0, id_list[i].length-1);
+		var is_clicked = (id_list[i].substring(id_list[i].length-1) == "x");
+		
+		var tmp_tile = findTileWithId(tmp_id);
+		
+		random_tiles[rc_key] = tmp_tile;
+		
+		$("#"+rc_key).html("<img src='"+tmp_tile.img_src+"' alt='"+tmp_tile.name+"' width='"+tile_height+"' height='"+tile_height+"'>");
+		
+		if(!is_clicked){
+			$("#"+rc_key).click(function(a,b){
+				console.log(a,b);
+				
+				var rc_key = a.currentTarget.id;
+							
+				console.log(a.currentTarget.id);
+				var check = confirm("You saw "+random_tiles[rc_key].name+"?");
+				if(check){
+					$(a.currentTarget).css("opacity", ".2");
+					$(a.currentTarget).css("background-color", "red");
+					
+					cookie_text = cookie_text.replace(random_tiles[rc_key].id+"o", random_tiles[rc_key].id+"x")
+					setCookie(cookie_text);
+				}
+			});
+		}else{
+			$("#"+rc_key).css("opacity", ".2");
+			$("#"+rc_key).css("background-color", "red");
+		}
+	}		
+}
+
+function init_bingo(){
+	tile_height = $(document).width()/5 - 2;
+	
+	if(cookie_text){
+		restore_tiles();
+	}else{
+		randomize_tiles();
+	}
+	
+	// add reload button
+	$("#reload_button").height(tile_height);
+	$("#reload_button").width(tile_height);
+	$("#reload_button").show();
+	
+	$("#twitter_link").height(tile_height);
+	$("#twitter_link").width(tile_height);
+	$("#twitter_link").show();
+	
+}
+
+
+$(document).ready(init_bingo);
+
+</script>
+
+<style type="text/css">
+
+body {
+	margin: 0;	
+}
+
+td {
+	margin: 0;
+}
+
+table.bingo {
+	border-width: 0px;
+	border-spacing: 0 3px;
+	border-style: none;
+	border-color: black;
+	border-collapse: separate;
+	background: red;
+}
+table.bingo th {
+	border-width: 0px;
+	padding: 0px;
+	border-style: none;
+	border-color: red;
+	background-color: red;
+	-moz-border-radius: ;
+}
+
+table.bingo td {
+	border-width: 0px;
+	padding: 0px;
+	border-style: none;
+	border-color: red;
+	background-color: red;
+	-moz-border-radius: ;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+  
+  <div class="content" id="bingo">
+  	  
+      <table class="bingo" width="100%" border="1" cellpadding="0">
+        <tr>
+          <td id="A1"></td>
+          <td id="A2"></td>
+          <td id="A3"></td>
+          <td id="A4"></td>
+          <td id="A5"></td>
+        </tr>
+        <tr>
+          <td id="B1"></td>
+          <td id="B2"></td>
+          <td id="B3"></td>
+          <td id="B4"></td>
+          <td id="B5"></td>
+        </tr>
+        <tr>
+          <td id="C1"></td>
+          <td id="C2"></td>
+          <td id="C3"></td>
+          <td id="C4"></td>
+          <td id="C5"></td>
+        </tr>
+        <tr>
+          <td id="D1"></td>
+          <td id="D2"></td>
+          <td id="D3"></td>
+          <td id="D4"></td>
+          <td id="D5"></td>
+        </tr>
+        <tr>
+          <td id="E1"></td>
+          <td id="E2"></td>
+          <td id="E3"></td>
+          <td id="E4"></td>
+          <td id="E5"></td>
+        </tr>
+      </table>
+  </div>
+  
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+  <br/>
+  <div class="footer">
+  	<table width="100%" border="1" cellpadding="0" style="border-width: 0px; border-style: none;">
+        <tr>
+          <td width="20%" style="border-style: none;"><img style="display: none;" id="reload_button" src="http://t2.ftcdn.net/jpg/00/22/51/55/400_F_22515595_gPSI6qLKvIwx135Sq6wGpcYGUsYgyleU.jpg" onclick="newBoard();"/></td>
+          <td width="20%" style="border-style: none;">&nbsp;</td>
+          <td width="20%" style="border-style: none;">&nbsp;</td>
+          <td width="20%" style="border-style: none;">&nbsp;</td>
+          <td width="20%" style="border-style: none;"><a href="https://twitter.com/Skogenator"><img style="display: none;" id="twitter_link" src="http://website101.com/wp-content/uploads/2012/03/twitter-icon-300x300.png"  /></a></td>
+        </tr>
+    </table>
+  </div>
+  </div>
+</body>
+</html>
