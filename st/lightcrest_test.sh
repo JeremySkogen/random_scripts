@@ -24,7 +24,6 @@ if [ ! -f /etc/hosts_lc_ext ]; then
 8.26.65.171 stocktwits.net
 
 
-
 8.26.65.171 assets0.new.stocktwits.net
 8.26.65.171 assets0.stocktwits.net
 8.26.65.171 assets0.new.stocktwits.com
@@ -33,12 +32,10 @@ if [ ! -f /etc/hosts_lc_ext ]; then
 8.26.65.171 assets1.stocktwits.net
 8.26.65.171 assets1.new.stocktwits.com
 8.26.65.171 assets1.stocktwits.com
-
 8.26.65.171 assets2.new.stocktwits.net
 8.26.65.171 assets2.stocktwits.net
 8.26.65.171 assets2.new.stocktwits.com
 8.26.65.171 assets2.stocktwits.com
-
 8.26.65.171 assets3.new.stocktwits.net
 8.26.65.171 assets3.stocktwits.net
 8.26.65.171 assets3.new.stocktwits.com
@@ -72,12 +69,16 @@ case "$1" in
     # Oracle listener and instance startup
     echo -n "Entering Testing mode...  "
     cp /etc/hosts_lc_ext /etc/hosts
+    dscacheutil -flushcache
+    sudo killall -HUP mDNSResponder
     echo "Begin testing"
     ;;
   stop)
     # Oracle listener and instance startup
     echo -n "Exiting Testing mode...  "
     cp /etc/hosts_backup /etc/hosts
+    dscacheutil -flushcache
+    sudo killall -HUP mDNSResponder
     echo "Hosts restored to original"
     ;;
   remove)
@@ -86,6 +87,8 @@ case "$1" in
     cp /etc/hosts_backup /etc/hosts
     rm /etc/hosts_backup
     rm /etc/hosts_lc_ext
+    dscacheutil -flushcache
+    sudo killall -HUP mDNSResponder
     echo "Hosts restored to original"
     ;;
   *)
